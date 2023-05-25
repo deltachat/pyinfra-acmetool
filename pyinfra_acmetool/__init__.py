@@ -1,9 +1,9 @@
 import importlib.resources
 
-from pyinfra.operations import apt, files, systemd
+from pyinfra.operations import apt, files, systemd, server
 
 
-def deploy_acmetool(nginx_hook=False, email=""):
+def deploy_acmetool(nginx_hook=False, email="", domains=[]):
     """Deploy acmetool."""
     apt.packages(
         name="Install acmetool",
@@ -54,3 +54,9 @@ def deploy_acmetool(nginx_hook=False, email=""):
         enabled=True,
         restarted=service_file.changed,
     )
+
+    for domain in domains:
+        server.shell(
+            name=f"Request certificate for {domain}",
+            commands=[f"acmetool want {domain}"],
+        )

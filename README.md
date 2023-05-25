@@ -11,7 +11,7 @@ deploy_acmetool()
 
 It can also be used to deploy acmetool with an ad-hoc command like this:
 ```
-pyinfra --ssh-user root example.org pyinfra_acmetool.deploy_acmetool
+pyinfra --ssh-user root -- example.org pyinfra_acmetool.deploy_acmetool email=admin@example.org domains='["example.org", "www.example.org"]'
 ```
 
 [acmetool]: https://hlandau.github.io/acmetool/
