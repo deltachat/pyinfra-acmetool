@@ -3,7 +3,7 @@ import importlib.resources
 from pyinfra.operations import apt, files, systemd
 
 
-def deploy_acmetool(nginx_hook=False):
+def deploy_acmetool(nginx_hook=False, email=""):
     """Deploy acmetool."""
     apt.packages(
         name="Install acmetool",
@@ -28,6 +28,15 @@ def deploy_acmetool(nginx_hook=False):
             group="root",
             mode="744",
         )
+
+    files.template(
+        src=importlib.resources.files(__package__).joinpath("response-file.yaml.j2"),
+        dest="/var/lib/acme/conf/responses/response-file.yaml",
+        user="root",
+        group="root",
+        mode="644",
+        email=email,
+    )
 
     service_file = files.put(
         src=importlib.resources.files(__package__)
