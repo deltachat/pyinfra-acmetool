@@ -31,7 +31,7 @@ def deploy_acmetool(nginx_hook=False, email="", domains=[]):
 
     files.template(
         src=importlib.resources.files(__package__).joinpath("response-file.yaml.j2"),
-        dest="/var/lib/acme/conf/responses/response-file.yaml",
+        dest="/var/lib/acme/conf/responses",
         user="root",
         group="root",
         mode="644",
