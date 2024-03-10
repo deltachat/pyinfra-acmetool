@@ -1,7 +1,10 @@
 [build-system]
-requires = ["setuptools>=45"]
+requires = ["setuptools>=60", "setuptools-scm>=8.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyinfra-acmetool"
 version = "0.1"
+
+[tool.setuptools.package-data]
+myModule = ["*"]
