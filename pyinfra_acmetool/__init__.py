@@ -11,9 +11,7 @@ def deploy_acmetool(reload_hook="", email="", domains=[]):
     )
 
     files.template(
-        src=importlib.resources.files(__package__)
-        .joinpath("acmetool.cron.j2")
-        .open("rb"),
+        src=importlib.resources.files(__package__) / "acmetool.cron.j2",
         dest="/etc/cron.d/acmetool",
         user="root",
         group="root",
