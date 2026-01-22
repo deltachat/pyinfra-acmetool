@@ -1,9 +1,11 @@
 import importlib.resources
 
+from pyinfra import host
+from pyinfra.facts.files import FindFiles
 from pyinfra.operations import apt, files, systemd, server
 
 
-def deploy_acmetool(reload_hook="", email="", domains=[]):
+def deploy_acmetool(reload_hook="", email="", domains=[], request_later=False):
     """Deploy acmetool."""
     apt.packages(
         name="Install acmetool",
@@ -45,8 +47,24 @@ def deploy_acmetool(reload_hook="", email="", domains=[]):
         restarted=service_file.changed,
     )
 
-    for domain in domains:
+    old_desired_files = host.get_fact(
+        FindFiles, path="/var/lib/acme/desired", fname=f"{domains[0]}-*"
+    )
+    for file in old_desired_files:
+        files.file(
+            path=file,
+            present=False,
+        )
+    files.template(
+        src=importlib.resources.files(__package__).joinpath("desired.yaml.j2"),
+        dest=f"/var/lib/acme/desired/{domains[0]}",
+        user="root",
+        group="root",
+        mode="644",
+        domains=domains,
+    )
+    if not request_later:
         server.shell(
-            name=f"Request certificate for {domain}",
-            commands=[f"acmetool want {domain}"],
+            name=f"Request certificate for: {' '.join(domains)}",
+            commands=["acmetool --batch --xlog.severity=debug reconcile"],
         )
