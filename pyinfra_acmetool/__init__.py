@@ -5,11 +5,14 @@ from pyinfra.facts.files import FindFiles
 from pyinfra.operations import apt, files, systemd, server
 
 
-def deploy_acmetool(reload_hook="", email="", domains=[], request_later=False):
+def deploy_acmetool(
+    reload_hook="", email="", domains=[], request_later=False, **pyinfra_args
+):
     """Deploy acmetool."""
     apt.packages(
         name="Install acmetool",
         packages=["acmetool"],
+        **pyinfra_args,
     )
 
     files.template(
@@ -19,6 +22,7 @@ def deploy_acmetool(reload_hook="", email="", domains=[], request_later=False):
         group="root",
         mode="644",
         reload_hook=reload_hook,
+        **pyinfra_args,
     )
 
     files.template(
@@ -28,6 +32,7 @@ def deploy_acmetool(reload_hook="", email="", domains=[], request_later=False):
         group="root",
         mode="644",
         email=email,
+        **pyinfra_args,
     )
 
     service_file = files.put(
@@ -38,6 +43,7 @@ def deploy_acmetool(reload_hook="", email="", domains=[], request_later=False):
         user="root",
         group="root",
         mode="644",
+        **pyinfra_args,
     )
     systemd.service(
         name="Setup acmetool-redirector service",
@@ -45,15 +51,20 @@ def deploy_acmetool(reload_hook="", email="", domains=[], request_later=False):
         running=True,
         enabled=True,
         restarted=service_file.changed,
+        **pyinfra_args,
     )
 
     old_desired_files = host.get_fact(
-        FindFiles, path="/var/lib/acme/desired", fname=f"{domains[0]}-*"
+        FindFiles,
+        path="/var/lib/acme/desired",
+        fname=f"{domains[0]}-*",
+        **pyinfra_args,
     )
     for file in old_desired_files:
         files.file(
             path=file,
             present=False,
+            **pyinfra_args,
         )
     files.template(
         src=importlib.resources.files(__package__).joinpath("desired.yaml.j2"),
@@ -62,9 +73,11 @@ def deploy_acmetool(reload_hook="", email="", domains=[], request_later=False):
         group="root",
         mode="644",
         domains=domains,
+        **pyinfra_args,
     )
     if not request_later:
         server.shell(
             name=f"Request certificate for: {' '.join(domains)}",
             commands=["acmetool --batch --xlog.severity=debug reconcile"],
+            **pyinfra_args,
         )
