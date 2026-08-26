@@ -1,12 +1,13 @@
+import fnmatch
 import importlib.resources
 
 from pyinfra import host
 from pyinfra.facts.files import FindFiles
-from pyinfra.operations import apt, files, systemd, server
+from pyinfra.operations import apt, files, server, systemd
 
 
 def deploy_acmetool(
-    reload_hook="", email="", domains=[], request_later=False, **pyinfra_args
+    reload_hook="", email="", *, domains, request_later=False, **pyinfra_args
 ):
     """Deploy acmetool."""
     apt.packages(
@@ -54,12 +55,12 @@ def deploy_acmetool(
         **pyinfra_args,
     )
 
-    old_desired_files = host.get_fact(
+    desired_files = host.get_fact(
         FindFiles,
         path="/var/lib/acme/desired",
-        fname=f"{domains[0]}-*",
         **pyinfra_args,
     )
+    old_desired_files = fnmatch.filter(desired_files, f"*/{domains[0]}-*")
     for file in old_desired_files:
         files.file(
             path=file,
